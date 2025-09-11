@@ -72,7 +72,7 @@ do_install:append() {
     sed -i -e "s|/usr|${STAGING_DIR_TARGET}${prefix}|" ${D}/${OE_QMAKE_PATH_QT_ARCHDATA}/mkspecs/features/maliit-plugins.prf
 
     install -d ${D}${datadir}/applications
-    install -m 644 ${WORKDIR}/maliit-server.desktop ${D}${datadir}/applications
+    install -m 644 ${UNPACKDIR}/maliit-server.desktop ${D}${datadir}/applications
 }
 
 pkg_postinst_ontarget:${PN} () {
@@ -94,3 +94,8 @@ fi
 }
 
 S = "${WORKDIR}/git"
+
+# http://errors.yoctoproject.org/Errors/Details/852835/
+# ERROR: QA Issue: File /usr/lib/mkspecs/features/maliit-framework.prf in package maliit-framework-qt5-dev contains reference to TMPDIR [buildpaths]
+# ERROR: QA Issue: File /usr/lib/mkspecs/features/maliit-plugins.prf in package maliit-framework-qt5-dev contains reference to TMPDIR [buildpaths]
+INSANE_SKIP:${PN}-dev += "buildpaths"

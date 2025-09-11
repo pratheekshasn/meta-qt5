@@ -10,7 +10,7 @@ LIC_FILES_CHKSUM = " \
     file://LICENSE.GPL3;md5=d32239bcb673463ab874e80d47fae504 \
     file://LICENSE.GPL3-EXCEPT;md5=763d8c535a234d9a3fb682c7ecb6c073 \
     file://LICENSE.FDL;md5=6d9f2a9af4c8b8c3c769f6cc1b6aaf7e \
-    file://LICENSE.QT-LICENSE-AGREEMENT;md5=38de3b110ade3b6ee2f0b6a95ab16f1a \
+    file://LICENSE.QT-LICENSE-AGREEMENT;md5=485e1d58b313def058a0d72598aa6efe \
 "
 
 require qt5-native.inc
@@ -40,8 +40,7 @@ SRC_URI += "\
     file://0019-tst_QPluginLoader-Simplify-creating-a-fake-pointer-i.patch \
     file://0021-rcc-Just-dcument-file-name-without-full-path-to-redu.patch \
     file://0022-testlib-don-t-track-the-build-or-source-directories.patch \
-    file://0027-xkb-fix-build-with-libxkbcommon-1.6.0-and-later.patch \
-    file://CVE-2024-39936-qtbase-5.15.patch \
+    file://0023-qdbusxml2cpp-don-t-track-command-line.patch \
 "
 
 # common for qtbase-native and nativesdk-qtbase
@@ -147,4 +146,4 @@ do_install() {
     echo 'set(_qt5_corelib_extra_includes "${_qt5Core_install_prefix}/lib${QT_DIR_NAME}/mkspecs/linux-oe-g++")' > ${D}${libdir}/cmake/Qt5Core/Qt5CoreConfigExtrasMkspecDir.cmake
 }
 
-SRCREV = "4e158f6bfa7d0747d8da70b3b15a44b52e35bb8a"
+SRCREV = "8ad94db938533e1b7a96f9baddffbcdbae6909d3"

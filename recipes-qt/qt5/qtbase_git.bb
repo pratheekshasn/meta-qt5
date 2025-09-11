@@ -9,7 +9,7 @@ LIC_FILES_CHKSUM = " \
     file://LICENSE.GPL3;md5=d32239bcb673463ab874e80d47fae504 \
     file://LICENSE.GPL3-EXCEPT;md5=763d8c535a234d9a3fb682c7ecb6c073 \
     file://LICENSE.FDL;md5=6d9f2a9af4c8b8c3c769f6cc1b6aaf7e \
-    file://LICENSE.QT-LICENSE-AGREEMENT;md5=38de3b110ade3b6ee2f0b6a95ab16f1a \
+    file://LICENSE.QT-LICENSE-AGREEMENT;md5=485e1d58b313def058a0d72598aa6efe \
 "
 
 # common for qtbase-native, qtbase-nativesdk and qtbase
@@ -36,21 +36,14 @@ SRC_URI += "\
     file://0019-tst_QPluginLoader-Simplify-creating-a-fake-pointer-i.patch \
     file://0021-rcc-Just-dcument-file-name-without-full-path-to-redu.patch \
     file://0022-testlib-don-t-track-the-build-or-source-directories.patch \
-    file://0023-Remove-unsetting-_FILE_OFFSET_BITS.patch \
-    file://CVE-2023-32762.patch \
-    file://CVE-2023-32763-qtbase-5.15.diff \
-    file://CVE-2023-33285-qtbase-5.15.diff \
-    file://CVE-2023-34410-qtbase-5.15.diff \
-    file://CVE-2023-37369-qtbase-5.15.diff \
-    file://CVE-2023-38197-qtbase-5.15.diff \
-    file://CVE-2023-43114-5.15.patch \
-    file://0027-xkb-fix-build-with-libxkbcommon-1.6.0-and-later.patch \
+    file://0023-qdbusxml2cpp-don-t-track-command-line.patch \
+"
+SRC_URI += "\
     file://0001-CVE-2023-51714-qtbase-5.15.diff \
     file://0002-CVE-2023-51714-qtbase-5.15.diff \
     file://0028-Remove-host-paths-from-qmake.patch \
     file://0029-Remove-ptests-with-SRCDIR.patch \
     file://CVE-2024-25580.patch \
-    file://CVE-2024-39936-qtbase-5.15.patch \
 "
 
 # usually pulled by one of the optional dependencies in PACKAGECONFIG, but with very limited PACKAGECONFIG fails with:
@@ -239,7 +232,7 @@ do_configure() {
     # Avoid qmake error "Cannot read [...]/usr/lib/qt5/mkspecs/oe-device-extra.pri: No such file or directory" during configuration
     touch ${S}/mkspecs/oe-device-extra.pri
 
-    ${S}/configure -v \
+    MAKEFLAGS="${PARALLEL_MAKE}" ${S}/configure -v \
         -${QT_EDITION} -confirm-license \
         -sysroot ${STAGING_DIR_TARGET} \
         -prefix ${OE_QMAKE_PATH_PREFIX} \
@@ -264,6 +257,10 @@ do_configure() {
         -platform ${OE_QMAKE_PLATFORM_NATIVE} \
         -xplatform ${XPLATFORM} \
         ${QT_CONFIG_FLAGS}
+
+    # Remove reference to SRCDIR in widgets example
+    sed -i -e 's:QLatin1String(SRCDIR) + QLatin1String("/images"):QLatin1String("${datadir}/examples/widgets/widgets/icons/images"):g' \
+        ${S}/examples/widgets/widgets/icons/mainwindow.cpp
 }
 
 do_install:append() {
@@ -303,6 +300,34 @@ do_install:append() {
     # Fix up absolute paths in scripts and use python3 instead of python
     sed -i -e '1s,#!/usr/bin/python$,#! ${USRBINPATH}/env python3,' \
         ${D}${OE_QMAKE_PATH_QT_ARCHDATA}/mkspecs/features/uikit/devices.py
+
+    # Remove references to buildmachine paths in examples target files if examples feature is enabled
+    if ${@bb.utils.contains('PACKAGECONFIG', 'examples', 'true', 'false', d)}; then
+        sed -i -e "s:${B}:${prefix}:g" ${D}${OE_QMAKE_PATH_EXAMPLES}/widgets/tools/plugandpaint/plugins/libpnp_basictools.prl
+    fi
+}
+
+PACKAGE_PREPROCESS_FUNCS += "${@bb.utils.contains('PACKAGECONFIG', 'examples', 'qt_package_preprocess_examples', '', d)}"
+PACKAGE_PREPROCESS_FUNCS += "${@bb.utils.contains('PACKAGECONFIG', 'tests', 'qt_package_preprocess_tests', '', d)}"
+
+qt_package_preprocess_examples () {
+    # Remove references to buildmachine paths in the comment headers of the examples source files
+    sed -i -e 's:${WORKDIR}::g' \
+        ${B}/examples/dbus/chat/chat_interface.cpp \
+        ${B}/examples/dbus/chat/chat_interface.h \
+        ${B}/examples/dbus/chat/chat_adaptor.cpp \
+        ${B}/examples/dbus/chat/chat_adaptor.h \
+        ${B}/examples/dbus/remotecontrolledcar/car/car_adaptor.cpp \
+        ${B}/examples/dbus/remotecontrolledcar/car/car_adaptor.h \
+        ${B}/examples/dbus/remotecontrolledcar/controller/car_interface.cpp \
+        ${B}/examples/dbus/remotecontrolledcar/controller/car_interface.h
+}
+
+qt_package_preprocess_tests () {
+    # Remove references to buildmachine paths in the comment headers of the tests source files
+    sed -i -e 's:${WORKDIR}::g' \
+        ${B}/tests/auto/dbus/qdbusabstractinterface/qdbusabstractinterface/pinger_interface.h \
+        ${B}/tests/auto/dbus/qdbusabstractinterface/qdbusabstractinterface/pinger_interface.cpp
 }
 
 # mkspecs have mac specific scripts that depend on perl and bash
@@ -328,4 +353,4 @@ sed -i \
     $D${OE_QMAKE_PATH_ARCHDATA}/mkspecs/qmodule.pri
 }
 
-SRCREV = "4e158f6bfa7d0747d8da70b3b15a44b52e35bb8a"
+SRCREV = "8ad94db938533e1b7a96f9baddffbcdbae6909d3"

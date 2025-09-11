@@ -18,6 +18,7 @@ SRC_URI += " \
     file://0001-add-noqtwebkit-configuration.patch \
     file://0002-linguist-tools-cmake-allow-overriding-the-location-f.patch \
     file://0003-src.pro-Add-option-noqdoc-to-disable-qdoc-builds.patch \
+    file://0005-Remove-buildpath-from-qdoc.patch \
 "
 SRC_URI:append:class-native = " ${@bb.utils.contains('PACKAGECONFIG', 'clang', 'file://0004-Force-native-build-of-qt-help-tools-as-qhelpgenerato.patch', '', d)}"
 
@@ -43,7 +44,7 @@ EXTRA_QMAKEVARS_PRE += " \
     ${@bb.utils.contains('PACKAGECONFIG', 'qtwebkit', '', 'CONFIG+=noqtwebkit', d)} \
     ${@bb.utils.contains('PACKAGECONFIG', 'clang', 'CONFIG+=disable_external_rpath CONFIG+=assistant', 'CONFIG+=noqdoc', d)} \
 "
-SRCREV = "e8c3c391de17edce4542819c79de3d27a57ff408"
+SRCREV = "62998610cf31868b54cf4d4ffdd002f769da0b96"
 
 BBCLASSEXTEND = "native nativesdk"
 

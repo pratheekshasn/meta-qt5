@@ -17,6 +17,7 @@ LIC_FILES_CHKSUM = " \
 SRC_URI += " \
     file://0001-Use-OE_QMAKE_PATH_EXTERNAL_HOST_BINS-to-locate-qmlca.patch \
 "
+SRC_URI += "file://0002-qv4compiler-fix-build-with-gcc-15.patch"
 
 LDFLAGS:append:riscv64 = " -pthread"
 
@@ -53,6 +54,13 @@ do_install:append:class-nativesdk() {
     rm -rf ${D}${OE_QMAKE_PATH_QML}
 }
 
-SRCREV = "6ab9856ef379fc3fe44d5fac03a83f679f398511"
+do_install:append() {
+    # Remove references to buildmachine paths
+    qtversion=$(echo ${PV} | cut -d+ -f1)
+    sed -i -e "s:${S}::g" ${D}${OE_QMAKE_PATH_HEADERS}/QtQml/$qtversion/QtQml/private/qqmljsparser_p.h
+}
+
+SRCREV = "abe4729ea8db32124c36dc33fc32eb629df03043"
 
 BBCLASSEXTEND =+ "native nativesdk"
+INSANE_SKIP:${PN}-ptest += "buildpaths"
